@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php
+require_once('vendor/autoload.php');
+require(__DIR__.'/../src/phpstORM.php');
+use Symfony\Component\Yaml\Yaml;
+$config = Yaml::parseFile('config/parameters.yml');
+
+$phpstORM = new phpstORM();
+
+$color_formats = [
+    'purple' => "\033[1;35m",
+    'green' => "\033[1;32m",
+    'red' => "\033[1;31m",
+    'nc' => "\033[0m",
+];
+
+$commands_list = "
+    make:migration
+    make:migrate
+";
+
+if (!isset($argv[1])) {
+    echo sprintf("%sPlease specify what you want to do.%s", $color_formats['red'], $color_formats['nc']);
+    echo $commands_list;
+    return false;
+}
+
+date_default_timezone_set('Europe/Paris');
+$order = explode(':', $argv[1]);
+if (count($order) == 2) {
+    $action = $order[0];
+    $command = $order[1];
+} else {
+    echo sprintf("%sSyntax error: %s", $color_formats['red'], $color_formats['nc']);
+    echo $commands_list;
+    return false;
+}
+
+if (!function_exists($action . "_" . $command)) {
+    echo sprintf("%sCommand doesn't exist%s", $color_formats['red'], $color_formats['nc']);
+    echo $commands_list;
+    return false;
+}
+
+call_user_func_array($action . "_" . $command, [$phpstORM, $color_formats]);
+
+function make_migration($phpstORM, $color_formats) {
+    $date = new DateTime();
+    $timestamp = $date->format('YmdHis');
+    $line = readline(sprintf("%sMigration name: %s", $color_formats['purple'], $color_formats['nc']));
+    $line = strtolower($line);
+    $line = implode("_", explode(" ", $line));
+    $migration_name = $timestamp."_".$line;
+    $template_content = file_get_contents(__DIR__ . '/templates/migration.php');
+    $template_content = str_replace("{{ name }}", $migration_name, $template_content);
+    file_put_contents(__DIR__ . '/..' . $phpstORM->migrations_folder . $migration_name . '.php', $template_content);
+    echo sprintf("%sMigration file %s has been created in %s%s", $color_formats['green'], $migration_name, $phpstORM->migrations_folder, $color_formats['nc']);
+}

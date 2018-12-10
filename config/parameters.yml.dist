@@ -4,3 +4,5 @@ db:
     password: ""
     host: 127.0.0.1
     port: ~
+migrations:
+    folder: '/examples/migrations'

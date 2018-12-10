@@ -1,7 +1,13 @@
 <?php
+require_once('vendor/autoload.php');
+use Symfony\Component\Yaml\Yaml;
 
-include("src/phpstORM.php");
+$config = Yaml::parseFile('config/parameters.yml');
+require("src/phpstORM.php");
 
-// $user->save()
+$phpstORM = new phpstORM();
 
-// phpstORM 
+$conn = $phpstORM->init();
+
+// $manager = $phpstORM->getManager($conn);
+// $manager->newModel("Kebab");
