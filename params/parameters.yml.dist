@@ -1,0 +1,6 @@
+db:
+    name: "la_mer_noire"
+    user: ""
+    password: ""
+    host: 127.0.0.1
+    port: ~
