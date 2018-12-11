@@ -16,7 +16,7 @@ $color_formats = [
 
 $commands_list = "
     make:migration
-    make:migrate
+    make:migrate:up
 ";
 
 if (!isset($argv[1])) {
@@ -27,22 +27,21 @@ if (!isset($argv[1])) {
 
 date_default_timezone_set('Europe/Paris');
 $order = explode(':', $argv[1]);
-if (count($order) == 2) {
-    $action = $order[0];
-    $command = $order[1];
+if (count($order) >= 2) {
+    $action = implode("_", $order);
 } else {
     echo sprintf("%sSyntax error: %s", $color_formats['red'], $color_formats['nc']);
     echo $commands_list;
     return false;
 }
 
-if (!function_exists($action . "_" . $command)) {
+if (!function_exists($action)) {
     echo sprintf("%sCommand doesn't exist%s", $color_formats['red'], $color_formats['nc']);
     echo $commands_list;
     return false;
 }
 
-call_user_func_array($action . "_" . $command, [$phpstORM, $color_formats]);
+call_user_func_array($action, [$phpstORM, $color_formats]);
 
 function make_migration($phpstORM, $color_formats) {
     $date = new DateTime();
@@ -55,4 +54,9 @@ function make_migration($phpstORM, $color_formats) {
     $template_content = str_replace("{{ name }}", $migration_name, $template_content);
     file_put_contents(__DIR__ . '/..' . $phpstORM->migrations_folder . $migration_name . '.php', $template_content);
     echo sprintf("%sMigration file %s has been created in %s%s", $color_formats['green'], $migration_name, $phpstORM->migrations_folder, $color_formats['nc']);
+}
+
+function make_migrate_up($phpstORM, $color_formats)
+{
+    echo "yo";
 }
