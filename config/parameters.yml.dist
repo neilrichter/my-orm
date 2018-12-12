@@ -4,5 +4,7 @@ db:
     password: ""
     host: 127.0.0.1
     port: ~
+    driver: 'pdo_mysql'
+    charset: 'utf8'
 migrations:
-    folder: '/examples/migrations'
+    folder: ''
