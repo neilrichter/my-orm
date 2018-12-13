@@ -23,15 +23,18 @@ $phpstORM = new phpstORM();
 $phpstORM->init($conn);
 
 $kebab = $phpstORM->new('Kebab');
-var_dump('<pre>', $kebab, '</pre>');
 
+// echo "\nGet by ID (1)\n";
+// var_dump('<pre>', $kebab->getById(1));
 
+// echo "\nGet all Kebabs\n";
+// var_dump('<pre>', $kebab->getAll());
 
-echo "\nGet by ID (1)\n";
-var_dump('<pre>', $kebab->getById(1));
+// echo "\n Get all Kebabs second time\n";
+// var_dump('<pre>', $kebab->getAttributes());
 
-echo "\nGet all Kebabs\n";
-var_dump('<pre>', $kebab->getAll());
+// echo "\n Get all Kebabs by\n";
+// var_dump('<pre>', $kebab->getAllBy('name', 'DESC'));
 
-echo "\n Get all Kebabs second time\n";
-var_dump('<pre>', $kebab->getAttributes());
+echo "\nCount Kebabs\n";
+echo $kebab->count();
