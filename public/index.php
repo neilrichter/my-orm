@@ -32,3 +32,6 @@ var_dump('<pre>', $kebab->getById(1));
 
 echo "\nGet all Kebabs\n";
 var_dump('<pre>', $kebab->getAll());
+
+echo "\n Get all Kebabs second time\n";
+var_dump('<pre>', $kebab->getAttributes());

@@ -65,4 +65,16 @@ abstract class baseEntity {
         }
         return $data;
     }
+
+    public function getAttributes()
+    {
+        $columns = [];
+        $qb = $this->conn;
+        $table = $this->getClassName();
+        $data = $qb->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table'")->fetchAll();
+        foreach($data as $key=>$value){
+            array_push($columns, $value['COLUMN_NAME']);
+        }
+        return $columns;
+    }
 }
