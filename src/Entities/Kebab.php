@@ -1,6 +1,8 @@
 <?php
 
-require_once(__DIR__.'/../../src/baseEntity.php');
+namespace App\Entities;
+
+use ORM\baseEntity;
 
 class Kebab extends baseEntity {
     public function __construct($data = null)

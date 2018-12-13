@@ -2,5 +2,11 @@
     "require": {
         "symfony/yaml": "^4.2",
         "doctrine/dbal": "^2.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\" : "src/",
+            "ORM\\": "lib/"
+        }
     }
 }
