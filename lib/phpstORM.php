@@ -1,9 +1,12 @@
 <?php
 
+namespace ORM;
+
 use \Doctrine\DBAL\Driver\Connection;
 
 class phpstORM {
 
+    public $conn;
     public $migrations_folder;
 
     public function __construct()
@@ -20,21 +23,9 @@ class phpstORM {
         // $this->checkDB();
     }
 
-    public static function init()
+    public function init($conn)
     {
-        global $params;
-        $config = $config = new \Doctrine\DBAL\Configuration();
-        $connectionParams = [
-            'dbname' => $params['db']['name'],
-            'user' => $params['db']['user'],
-            'password' => $params['db']['password'],
-            'host' => $params['db']['host'],
-            'driver' => $params['db']['driver'],
-            'charset' => $params['db']['charset'],
-        ];
-        $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
-
-        return $conn;
+        $this->conn = $conn;
     }
 
     private function checkDB()
@@ -49,10 +40,11 @@ class phpstORM {
         }
     }
 
-    public function new(string $object_name)
+    public function new(string $className)
     {
-        $upper_name = substr_replace($object_name, strtoupper(substr($object_name, 0, 1)), 0, 1);
-        require(__DIR__.'/../examples/Entities/'. $upper_name .'.php');
-        return new $upper_name;
+        $className = "App\Entities\\$className";
+        $item = new $className;
+        $item->setConnexion($this->conn);
+        return $item;
     }    
 }
