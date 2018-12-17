@@ -38,6 +38,14 @@ abstract class baseEntity {
         return (new \ReflectionClass($this))->getShortName();
     }
 
+    public function arrayToObject(Array $data)
+    {
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i] = new $this->entityName($data[$i]);
+        }
+        return $data;
+    }
+
     public function getById(Int $id)
     {
         $qb = $this->conn->createQueryBuilder();
@@ -60,10 +68,32 @@ abstract class baseEntity {
             ->execute()
             ->fetchAll();
 
-        for ($i = 0; $i < count($data); $i++) {
-            $data[$i] = new $this->entityName($data[$i]);
-        }
-        return $data;
+        return $this->arrayToObject($data);
+    }
+
+    public function getAllBy(String $property, String $order)
+    {
+        $qb = $this->conn->createQueryBuilder();
+        $data = $qb
+            ->select('*')
+            ->from($this->getClassName())
+            ->orderBy($property, $order)
+            ->execute()
+            ->fetchAll();
+        
+        return $this->arrayToObject($data);
+    }
+
+    public function count() : Int
+    {
+        $qb = $this->conn->createQueryBuilder();
+        $count = $qb
+            ->select('*')
+            ->from($this->getClassName())
+            ->execute()
+            ->rowCount();
+        return $count;
+        
     }
 
     public function getAttributes()
