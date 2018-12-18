@@ -38,7 +38,20 @@ abstract class baseEntity {
         return $this->conn->createQueryBuilder();
     }
 
-    public function getClassName(): String
+    public function getAttributes(): Array
+    {
+        $columns = [];
+        $qb = $this->conn;
+        $table = $this->getClassName();
+        $data = $qb->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table'")->fetchAll();
+        foreach($data as $key=>$value){
+            $columns[$value['COLUMN_NAME']] = $value['DATA_TYPE'];
+            
+        }
+        return $columns;
+    }
+
+    public function getClassName()
     {
         return (new \ReflectionClass($this))->getShortName();
     }
@@ -48,6 +61,7 @@ abstract class baseEntity {
         for ($i = 0; $i < count($data); $i++) {
             $data[$i] = new $this->entityName($data[$i]);
         }
+        
         return $data;
     }
 
@@ -145,17 +159,5 @@ abstract class baseEntity {
         }
         $rows = $query->execute()->fetch();
         return $rows;
-    }
-
-    public function getAttributes()
-    {
-        $columns = [];
-        $qb = $this->conn;
-        $table = $this->getClassName();
-        $data = $qb->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table'")->fetchAll();
-        foreach($data as $key=>$value){
-            array_push($columns, $value['COLUMN_NAME']);
-        }
-        return $columns;
     }
 }
