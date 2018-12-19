@@ -36,5 +36,33 @@ $kebab = $phpstORM->new('Kebab');
 // echo "\n Get all Kebabs by\n";
 // var_dump('<pre>', $kebab->getAllBy('name', 'DESC'));
 
-echo "\nCount Kebabs\n";
-echo $kebab->count();
+// echo "\nCount Kebabs\n";
+// echo $kebab->count();
+
+/*
+ * existsWith can take either an associative array either a querybuilder
+ * for complex requests
+ * /!\ stop the query before the execution step. /!\
+echo "\nKebab exists ?\n";
+$kebabQB = $kebab->getQueryBuilder();
+$kebabQB
+    ->select('*')
+    ->from($kebab->getClassName())
+    ->where('tomate = :tomate')
+    ->setParameter(':tomate', false)
+    ->andWhere('oignon = :oignon')
+    ->setParameter(':oignon', false);
+echo $kebab->existsWith($kebabQB);
+echo $kebab->existsWith([
+    'tomate' => !"1",
+    'salade' => true,
+    'oignon' => true,
+]);
+*/
+
+echo "\nKebab exists ?\n";
+var_dump($kebab->selectAllWith([
+    'tomate' => !"1",
+    'salade' => true,
+    'oignon' => true,
+]));
