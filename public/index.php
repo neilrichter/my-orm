@@ -60,9 +60,15 @@ echo $kebab->existsWith([
 ]);
 */
 
-echo "\nKebab exists ?\n";
-var_dump($kebab->selectAllWith([
-    'tomate' => !"1",
-    'salade' => true,
-    'oignon' => true,
-]));
+echo "\Select all kebabks with \n";
+$kebabQB = $kebab->getQueryBuilder();
+$kebabQB
+    ->select('*')
+    ->where('tomate = :tomate')
+    ->setParameter(':tomate', true);
+var_dump($kebab->selectAllWith($kebabQB));
+// var_dump($kebab->selectAllWith([
+//     'tomate' => true,
+//     // 'salade' => true,
+//     // 'oignon' => true,
+// ]));
