@@ -22,7 +22,7 @@ $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 $phpstORM = new phpstORM();
 $phpstORM->init($conn);
 
-$kebab = $phpstORM->new('Kebab');
+$kebab = $phpstORM->new("\App\Entities\Kebab");
 
 // echo "\nGet by ID (1)\n";
 // var_dump('<pre>', $kebab->getById(1));
