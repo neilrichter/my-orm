@@ -65,6 +65,17 @@ abstract class baseEntity {
         return $data;
     }
 
+    private function isQuery($mixed): Bool
+    {
+        if (gettype($mixed) == 'array') {
+            return false;
+        } elseif ((new \ReflectionClass($mixed))->getShortName() == 'QueryBuilder') {
+            return true;
+        } else {
+            throw new Exception('Invalid value type');
+        }
+    }
+
     public function getById(Int $id): self
     {
         $qb = $this->conn->createQueryBuilder();
@@ -122,12 +133,10 @@ abstract class baseEntity {
     public function existsWith($mixed): Bool
     {
         $this->getQueryBuilder();
-        if (gettype($mixed) == 'array') {
-            $query = $this->ExistsWithArray($mixed);
-        } elseif ((new \ReflectionClass($mixed))->getShortName() == 'QueryBuilder') {
+        if ($this->isQuery($mixed)) {
             $query = $mixed;
         } else {
-            throw new Exception('Invalid value type');
+            $query = $this->ExistsWithArray($mixed);
         }
         $exists = $query->execute()->fetch();
         return !!$exists;
@@ -149,15 +158,22 @@ abstract class baseEntity {
 
     public function selectAllWith($mixed): Array
     {
-        $this->getQueryBuilder();
-        if (gettype($mixed) == 'array') {
-            $query = $this->ExistsWithArray($mixed);
-        } elseif ((new \ReflectionClass($mixed))->getShortName() == 'QueryBuilder') {
+        if ($this->isQuery($mixed)) {
             $query = $mixed;
+            $query->from($this->getClassName());
         } else {
-            throw new Exception('Invalid value type');
+            $query = $this->getQueryBuilder();
+            $query
+                ->select('*')
+                ->from($this->getClassName());
+
+            foreach ($mixed as $key => $value) {
+                $query->andWhere("$key = :$key");
+                $query->setParameter(":$key", $value);
+            }
         }
-        $rows = $query->execute()->fetch();
-        return $rows;
+
+        $rows = $query->execute()->fetchAll();
+        return $this->arrayToObject($rows);
     }
 }

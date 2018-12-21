@@ -40,9 +40,8 @@ class phpstORM {
         }
     }
 
-    public function new(string $className)
+    public function new($className)
     {
-        $className = "App\Entities\\$className";
         $item = new $className;
         $item->setConnexion($this->conn);
         return $item;
