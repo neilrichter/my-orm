@@ -9,7 +9,7 @@ abstract class baseEntity {
     private $id;
 
     public function __construct($data = null)
-    {        
+    {
         if (!is_null($data)) {
             foreach ($data as $key => $value) {
                 $this->{$key} = $value;
@@ -26,6 +26,15 @@ abstract class baseEntity {
         unset($object['entityName']);
         unset($object['conn']);
         return $object;
+    }
+
+    public function __set($name, $value)
+    {
+        if ($name == 'id') {
+            throw new \Exception('Cannot edit or set ID manually.');
+        }
+
+        $this->{$name} = $value;
     }
 
     public function setConnexion($conn): void
@@ -46,6 +55,10 @@ abstract class baseEntity {
         $data = $qb->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table'")->fetchAll();
         foreach($data as $key=>$value){
             $columns[$value['COLUMN_NAME']] = $value['DATA_TYPE'];
+            // $columns[$value['COLUMN_NAME']] = [
+            //     'TYPE' => $value['DATA_TYPE'],
+            //     'IS_NULLABLE' => $value['IS_NULLABLE'],
+            // ];
             
         }
         return $columns;
@@ -175,5 +188,62 @@ abstract class baseEntity {
 
         $rows = $query->execute()->fetchAll();
         return $this->arrayToObject($rows);
+    }
+
+    private function convertValue($property, $value, $types) {
+        switch ($types[$property]) {
+            case 'tinyint':
+                return $value === true ? 1 : 0;
+
+            case 'int':
+                return intval($value);
+
+            default:
+                return $value;
+        }
+    }
+
+    public function save()
+    {
+        $types = [];
+        $properties = [];
+        $values = [];
+
+        foreach ($this->getAttributes() as $attribute => $type) {
+            $properties[$attribute] = ":$attribute";
+            $types[$attribute] = $type;
+        }
+
+        unset($properties['id']);
+
+        foreach($properties as $property => $value) {
+            $values[$property] = $this->convertValue($property, $this->{$property}, $types);
+        }
+
+        if (is_null($this->id)) {
+            $query = $this->getQueryBuilder()
+                ->insert($this->getClassName())
+                ->values($properties);
+            foreach ($properties as $property => $value) {
+                $query->setParameter(":$property", $values[$property]);
+            }
+            $query->execute();
+            $this->id = intval($this->conn->lastInsertId());
+        } else {
+            $this->conn->update($this->getClassName(), $values, ['id' => $this->id]);
+        }
+    }
+
+    public function delete()
+    {
+        if (is_null($this->id)) {
+            throw new \Exception("Can't delete a non-existent item");
+        }
+        $this->conn->delete($this->getClassName(), ['id' => $this->id]);
+    }
+
+    public function deleteWith(Array $values)
+    {
+        $this->conn->delete($this->getClassName(), $values);
     }
 }

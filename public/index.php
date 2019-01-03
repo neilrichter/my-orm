@@ -60,15 +60,32 @@ echo $kebab->existsWith([
 ]);
 */
 
-echo "\Select all kebabks with \n";
-$kebabQB = $kebab->getQueryBuilder();
-$kebabQB
-    ->select('*')
-    ->where('tomate = :tomate')
-    ->setParameter(':tomate', true);
-var_dump($kebab->selectAllWith($kebabQB));
+// echo "\Select all kebabks with \n";
+// $kebabQB = $kebab->getQueryBuilder();
+// $kebabQB
+//     ->select('*')
+//     ->where('tomate = :tomate')
+//     ->setParameter(':tomate', true);
+// var_dump($kebab->selectAllWith($kebabQB));
 // var_dump($kebab->selectAllWith([
 //     'tomate' => true,
 //     // 'salade' => true,
 //     // 'oignon' => true,
 // ]));
+
+/* CREATION */
+$kebab->name = 'Le test';
+$kebab->oignon = true;
+$kebab->tomate = false;
+$kebab->salade = true;
+$kebab->save();
+
+/* EDIT */
+$kebab->salade = false;
+$kebab->save();
+
+/* DELETE */
+$kebab->delete(); // Created and deleted, won't appear in DB
+
+/* DELETE WITH */
+$kebab->deleteWith(['salade' => true]);
