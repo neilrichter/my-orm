@@ -83,3 +83,9 @@ $kebab->save();
 /* EDIT */
 $kebab->salade = false;
 $kebab->save();
+
+/* DELETE */
+$kebab->delete(); // Created and deleted, won't appear in DB
+
+/* DELETE WITH */
+$kebab->deleteWith(['salade' => true]);

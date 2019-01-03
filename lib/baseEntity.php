@@ -228,10 +228,22 @@ abstract class baseEntity {
                 $query->setParameter(":$property", $values[$property]);
             }
             $query->execute();
+            $this->id = intval($this->conn->lastInsertId());
         } else {
             $this->conn->update($this->getClassName(), $values, ['id' => $this->id]);
         }
-        
-        $this->id = $this->conn->lastInsertId();
+    }
+
+    public function delete()
+    {
+        if (is_null($this->id)) {
+            throw new \Exception("Can't delete a non-existent item");
+        }
+        $this->conn->delete($this->getClassName(), ['id' => $this->id]);
+    }
+
+    public function deleteWith(Array $values)
+    {
+        $this->conn->delete($this->getClassName(), $values);
     }
 }
