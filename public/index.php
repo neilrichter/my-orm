@@ -73,10 +73,13 @@ echo $kebab->existsWith([
 //     // 'oignon' => true,
 // ]));
 
+/* CREATION */
 $kebab->name = 'Le test';
 $kebab->oignon = true;
 $kebab->tomate = false;
 $kebab->salade = true;
 $kebab->save();
+
+/* EDIT */
 $kebab->salade = false;
 $kebab->save();
