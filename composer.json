@@ -1,7 +1,8 @@
 {
     "require": {
         "symfony/yaml": "^4.2",
-        "doctrine/dbal": "^2.9"
+        "doctrine/dbal": "^2.9",
+        "erusev/parsedown": "^1.7"
     },
     "autoload": {
         "psr-4": {

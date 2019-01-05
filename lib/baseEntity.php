@@ -97,12 +97,12 @@ abstract class baseEntity {
         return $columns;
     }
 
-    public function getClassName()
+    public function getClassName(): string
     {
         return (new \ReflectionClass($this))->getShortName();
     }
 
-    private function getClass()
+    private function getClass(): string
     {
         return (new \ReflectionClass($this))->getName();
     }
@@ -228,7 +228,8 @@ abstract class baseEntity {
         return $this->arrayToObject($rows);
     }
 
-    private function convertValue($property, $value, $types) {
+    private function convertValue($property, $value, $types)
+    {
         switch ($types[$property]) {
             case 'tinyint':
                 return $value === true ? 1 : 0;
@@ -241,7 +242,7 @@ abstract class baseEntity {
         }
     }
 
-    public function save()
+    public function save(): void
     {
         $types = [];
         $properties = [];
@@ -272,7 +273,7 @@ abstract class baseEntity {
         }
     }
 
-    public function delete()
+    public function delete(): void
     {
         if (is_null($this->id)) {
             throw new \Exception("Can't delete a non-existent item");
@@ -280,7 +281,7 @@ abstract class baseEntity {
         $this->conn->delete($this->getClassName(), ['id' => $this->id]);
     }
 
-    public function deleteWith(Array $values)
+    public function deleteWith(Array $values): void
     {
         $this->conn->delete($this->getClassName(), $values);
     }

@@ -1,91 +1,52 @@
 <?php
-require_once('../vendor/autoload.php');
 
-use ORM\phpstORM;
-use Symfony\Component\Yaml\Yaml;
-use App\Entities\Kebab;
+require_once('./conn.php');
 
-$params = Yaml::parseFile('../config/parameters.yml');
+$files = array_values(array_diff(scandir(__DIR__ . '/../docs'), array('..', '.', 'Init.md')));
+array_unshift($files, 'Init.md');
 
-$phpstORM = new phpstORM();
+for ($i = 0; $i < count($files); $i++) {
+    $files[$i] = explode('.', $files[$i])[0];
+}
 
-$config = $config = new \Doctrine\DBAL\Configuration();
-$connectionParams = [
-    'dbname' => $params['db']['name'],
-    'user' => $params['db']['user'],
-    'password' => $params['db']['password'],
-    'host' => $params['db']['host'],
-    'driver' => $params['db']['driver'],
-    'charset' => $params['db']['charset'],
-];
-$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
+$Parsedown = new Parsedown();
+?>
 
-$phpstORM = new phpstORM();
-$phpstORM->init($conn);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css">
+</head>
+<style>
+    body {
+        margin: 10px 10px;
+        display: flex;
+    }
 
-$kebab = $phpstORM->new(Kebab::class);
-echo "\nGet by ID (1)\n";
-var_dump($kebab->getById(3));
+    ul {
+        margin: 30px 0;
+    }
 
-// echo "\nGet all Kebabs\n";
-// var_dump($kebab->getAll());
+    div.main {
+        margin: 0 20px;
+    }
+</style>
+<body>
+    <ul>
+        <?php foreach ($files as $file): ?>
+        <li><a href="<?php echo "./?page=$file"; ?>"><?php echo $file; ?></a></li>
+        <?php endforeach; ?>
+    </ul>
 
-// echo "\n Get all Kebabs second time\n";
-// var_dump('<pre>', $kebab->getAttributes());
+    <div class="main">
+        <?php echo isset($_GET['page']) ? $Parsedown->text(file_get_contents(__DIR__ . '/../docs/' . $_GET['page'] . '.md')) : '   '; ?>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/components/prism-markup-templating.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/components/prism-php.js"></script>
+</body>
+</html>
 
-// echo "\n Get all Kebabs by\n";
-// var_dump('<pre>', $kebab->getAllBy('name', 'DESC'));
-
-// echo "\nCount Kebabs\n";
-// echo $kebab->count();
-
-/*
- * existsWith can take either an associative array either a querybuilder
- * for complex requests
- * /!\ stop the query before the execution step. /!\
-echo "\nKebab exists ?\n";
-$kebabQB = $kebab->getQueryBuilder();
-$kebabQB
-    ->select('*')
-    ->from($kebab->getClassName())
-    ->where('tomate = :tomate')
-    ->setParameter(':tomate', false)
-    ->andWhere('oignon = :oignon')
-    ->setParameter(':oignon', false);
-echo $kebab->existsWith($kebabQB);
-echo $kebab->existsWith([
-    'tomate' => !"1",
-    'salade' => true,
-    'oignon' => true,
-]);
-*/
-
-// echo "\Select all kebabks with \n";
-// $kebabQB = $kebab->getQueryBuilder();
-// $kebabQB
-//     ->select('*')
-//     ->where('tomate = :tomate')
-//     ->setParameter(':tomate', true);
-// var_dump($kebab->selectAllWith($kebabQB));
-// var_dump($kebab->selectAllWith([
-//     'tomate' => true,
-//     // 'salade' => true,
-//     // 'oignon' => true,
-// ]));
-
-/* CREATION */
-// $kebab->name = 'Le test';
-// $kebab->oignon = true;
-// $kebab->tomate = false;
-// $kebab->salade = true;
-// $kebab->save();
-
-/* EDIT */
-// $kebab->salade = false;
-// $kebab->save();
-
-/* DELETE */
-// $kebab->delete(); // Created and deleted, won't appear in DB
-
-/* DELETE WITH */
-// $kebab->deleteWith(['salade' => true]);
+<?php
