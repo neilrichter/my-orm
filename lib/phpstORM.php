@@ -40,10 +40,10 @@ class phpstORM {
         }
     }
 
-    public function new($className)
+    public function new($className, $data = null)
     {
-        $item = new $className;
+        $item = new $className($data);
         $item->setConnexion($this->conn);
         return $item;
-    }    
+    }  
 }

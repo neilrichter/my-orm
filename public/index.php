@@ -3,6 +3,7 @@ require_once('../vendor/autoload.php');
 
 use ORM\phpstORM;
 use Symfony\Component\Yaml\Yaml;
+use App\Entities\Kebab;
 
 $params = Yaml::parseFile('../config/parameters.yml');
 
@@ -22,13 +23,12 @@ $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 $phpstORM = new phpstORM();
 $phpstORM->init($conn);
 
-$kebab = $phpstORM->new("\App\Entities\Kebab");
-
-// echo "\nGet by ID (1)\n";
-// var_dump('<pre>', $kebab->getById(1));
+$kebab = $phpstORM->new(Kebab::class);
+echo "\nGet by ID (1)\n";
+var_dump($kebab->getById(3));
 
 // echo "\nGet all Kebabs\n";
-// var_dump('<pre>', $kebab->getAll());
+// var_dump($kebab->getAll());
 
 // echo "\n Get all Kebabs second time\n";
 // var_dump('<pre>', $kebab->getAttributes());
@@ -74,18 +74,18 @@ echo $kebab->existsWith([
 // ]));
 
 /* CREATION */
-$kebab->name = 'Le test';
-$kebab->oignon = true;
-$kebab->tomate = false;
-$kebab->salade = true;
-$kebab->save();
+// $kebab->name = 'Le test';
+// $kebab->oignon = true;
+// $kebab->tomate = false;
+// $kebab->salade = true;
+// $kebab->save();
 
 /* EDIT */
-$kebab->salade = false;
-$kebab->save();
+// $kebab->salade = false;
+// $kebab->save();
 
 /* DELETE */
-$kebab->delete(); // Created and deleted, won't appear in DB
+// $kebab->delete(); // Created and deleted, won't appear in DB
 
 /* DELETE WITH */
-$kebab->deleteWith(['salade' => true]);
+// $kebab->deleteWith(['salade' => true]);

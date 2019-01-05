@@ -7,12 +7,38 @@ abstract class baseEntity {
     public $entityName;
     private $conn;
     private $id;
+    private $tempData;
+    private $phpstORM;
 
     public function __construct($data = null)
     {
+        $this->phpstORM = new phpstORM;
         if (!is_null($data)) {
-            foreach ($data as $key => $value) {
-                $this->{$key} = $value;
+            $this->tempData = $data;
+        }
+    }
+
+    private function assignValues($data)
+    {
+        $types = [];
+
+        foreach ($this->getAttributes() as $attribute => $type) {
+            $types[$attribute] = $type;
+        }
+
+        foreach ($data as $key => $value) {
+            switch ($types[$key]) {
+                case 'tinyint':
+                    $this->{$key} = $value == '1';
+                    break;
+
+                case 'int':
+                    $this->{$key} = intval($value);
+                    break;
+                
+                default:
+                    $this->{$key} = $value;
+                    break;
             }
         }
     }
@@ -25,6 +51,7 @@ abstract class baseEntity {
         }
         unset($object['entityName']);
         unset($object['conn']);
+        unset($object['phpstORM']);
         return $object;
     }
 
@@ -40,6 +67,12 @@ abstract class baseEntity {
     public function setConnexion($conn): void
     {
         $this->conn = $conn;
+        $this->phpstORM->init($this->conn);
+        
+        if (!is_null($this->tempData)) {
+            $this->assignValues($this->tempData);
+            unset($this->tempData);
+        }
     }
 
     public function getQueryBuilder(): \Doctrine\DBAL\Query\QueryBuilder
@@ -69,10 +102,15 @@ abstract class baseEntity {
         return (new \ReflectionClass($this))->getShortName();
     }
 
+    private function getClass()
+    {
+        return (new \ReflectionClass($this))->getName();
+    }
+
     public function arrayToObject(Array $data): Array
     {
         for ($i = 0; $i < count($data); $i++) {
-            $data[$i] = new $this->entityName($data[$i]);
+            $data[$i] = $this->phpstORM->new($this->getClass() ,$data[$i]);
         }
         
         return $data;
@@ -99,7 +137,7 @@ abstract class baseEntity {
             ->setParameter('id', $id)
             ->execute()
             ->fetch();
-        return new $this->entityName($data);
+        return $this->phpstORM->new($this->getClass() ,$data);
     }
 
     public function getAll(): Array
