@@ -23,6 +23,7 @@ $Parsedown = new Parsedown();
     body {
         margin: 10px 10px;
         display: flex;
+        justify-content: flex-start;
     }
 
     ul {
@@ -31,6 +32,11 @@ $Parsedown = new Parsedown();
 
     div.main {
         margin: 0 20px;
+    }
+
+    div.github {
+        margin-left: auto;
+        white-space: nowrap;
     }
 </style>
 <body>
@@ -41,7 +47,14 @@ $Parsedown = new Parsedown();
     </ul>
 
     <div class="main">
+        <h1>phpstORM</h1>
         <?php echo isset($_GET['page']) ? $Parsedown->text(file_get_contents(__DIR__ . '/../docs/' . $_GET['page'] . '.md')) : ''; ?>
+    </div>
+    <div class="github">
+        <a href="https://github.com/noook/phpstORM">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/1024px-Octicons-mark-github.svg.png" width="16" height="16" alt="">
+        <span>Link to the repo</span>
+        </a>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/components/prism-markup-templating.min.js"></script>
