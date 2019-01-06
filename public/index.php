@@ -2,12 +2,6 @@
 
 require_once('./conn.php');
 
-use App\Entities\Kebab;
-
-$kebab = $phpstORM->new(Kebab::class);
-
-$kebab->deleteWith(['oignon' => false]);
-
 $files = array_values(array_diff(scandir(__DIR__ . '/../docs'), array('..', '.', 'Init.md')));
 array_unshift($files, 'Init.md');
 
