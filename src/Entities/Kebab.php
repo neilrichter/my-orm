@@ -10,4 +10,9 @@ class Kebab extends baseEntity {
         $this->entityName = __CLASS__;
         parent::__construct($data);
     }
+
+    // public function __call($name, $arguments)
+    // {
+    //     // parent::__call($name, $arguments);
+    // }
 }

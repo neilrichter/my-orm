@@ -8,3 +8,5 @@ db:
     charset: 'utf8'
 migrations:
     folder: ''
+logs:
+    folder: 'log'

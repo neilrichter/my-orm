@@ -19,5 +19,10 @@ $connectionParams = [
 ];
 $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 
+$settings = [
+    'conn' => $conn,
+    'log_folder' => $params['logs']['folder'],
+];
+
 $phpstORM = new phpstORM();
-$phpstORM->init($conn);
+$phpstORM->init($settings);

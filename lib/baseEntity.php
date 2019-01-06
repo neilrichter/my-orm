@@ -3,6 +3,10 @@
 namespace ORM;
 use ORM\phpstORM;
 
+set_error_handler(function($errno, $errstr, $errfile, $errline ){
+    throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
+});
+
 abstract class baseEntity {
     public $entityName;
     private $conn;
@@ -64,10 +68,10 @@ abstract class baseEntity {
         $this->{$name} = $value;
     }
 
-    public function setConnexion($conn): void
+    public function setConnexion($settings): void
     {
-        $this->conn = $conn;
-        $this->phpstORM->init($this->conn);
+        $this->conn = $settings['conn'];
+        $this->phpstORM->init($settings);
         
         if (!is_null($this->tempData)) {
             $this->assignValues($this->tempData);
@@ -129,51 +133,106 @@ abstract class baseEntity {
 
     public function getById(Int $id): self
     {
-        $qb = $this->conn->createQueryBuilder();
-        $data = $qb
-            ->select('*')
-            ->from($this->getClassName())
-            ->where('id = :id')
-            ->setParameter('id', $id)
-            ->execute()
-            ->fetch();
-        return $this->phpstORM->new($this->getClass() ,$data);
+        try {
+            $qb = $this->conn->createQueryBuilder();
+            $query = $qb
+                ->select('*')
+                ->from($this->getClassName())
+                ->where('id = :id')
+                ->setParameter('id', $id);
+
+            $queryString = $query->getSql();
+            $params = $query->getParameters();
+
+            $start = microtime(true);
+            $data = $query->execute();
+            $end = microtime(true);
+
+            $data = $data->fetch();
+
+            foreach ($params as $param => $value) {
+                $queryString = str_replace(":$param", $value, $queryString);
+            }
+            $time = round(($end - $start), 4) . ' seconds';
+            $this->phpstORM->log('success', "getById - ($id) - \"$queryString\" - $time");
+            return $this->phpstORM->new($this->getClass() ,$data);
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "getById - " . $e);
+        }
     }
 
     public function getAll(): Array
     {
-        $qb = $this->conn->createQueryBuilder();
-        $data = $qb
-            ->select('*')
-            ->from($this->getClassName())
-            ->execute()
-            ->fetchAll();
+        try {
+            $qb = $this->conn->createQueryBuilder();
+            $query = $qb
+                ->select('*')
+                ->from($this->getClassName());
 
-        return $this->arrayToObject($data);
+            $queryString = $query->getSql();
+            $start = microtime(true);
+            $data = $query
+                ->execute();
+            $end = microtime(true);
+            $data = $data->fetchAll();
+
+            $time = round(($end - $start), 4) . ' seconds';
+            $this->phpstORM->log('success', "getAll - \"$queryString\" - $time");
+
+            $data = $this->arrayToObject($data);
+            return $data;
+
+        } catch(\ErrorException $e) {
+            $this->phpstORM->log('error', "getAll - " . $e);
+        }
     }
 
     public function getAllBy(String $property, String $order): Array
     {
-        $qb = $this->conn->createQueryBuilder();
-        $data = $qb
-            ->select('*')
-            ->from($this->getClassName())
-            ->orderBy($property, $order)
-            ->execute()
-            ->fetchAll();
-        
-        return $this->arrayToObject($data);
+        try {
+            $qb = $this->conn->createQueryBuilder();
+            $query = $qb
+                ->select('*')
+                ->from($this->getClassName())
+                ->orderBy($property, $order);
+
+            $queryString = $query->getSql();
+            
+            $start = microtime(true);
+            $data = $query->execute();
+            $end = microtime(true);
+            $time = round(($end - $start), 4) . ' seconds';
+            $this->phpstORM->log('success', "getAllBy - \"$queryString\" - $time");
+
+            $data = $data->fetchAll();
+
+            return $this->arrayToObject($data);
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "getAllBy - " . $e);
+        }
     }
 
     public function count(): Int
     {
-        $qb = $this->conn->createQueryBuilder();
-        $count = $qb
-            ->select('id')
-            ->from($this->getClassName())
-            ->execute()
-            ->rowCount();
-        return $count;
+        try {
+            $qb = $this->conn->createQueryBuilder();
+            $query = $qb
+                ->select('id')
+                ->from($this->getClassName());
+
+            $queryString = $query->getSql();
+            
+            $start = microtime(true);
+            $count = $query->execute();
+            $end = microtime(true);
+            $time = round(($end - $start), 4) . ' seconds';
+
+            $this->phpstORM->log('success', "count - \"$queryString\" - $time");
+
+            return $count->rowCount();
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "count - " . $e);
+        }
     }
 
     /**
@@ -183,14 +242,34 @@ abstract class baseEntity {
      */
     public function existsWith($mixed): Bool
     {
-        $this->getQueryBuilder();
-        if ($this->isQuery($mixed)) {
-            $query = $mixed;
-        } else {
-            $query = $this->ExistsWithArray($mixed);
+        try {
+            $this->getQueryBuilder();
+            if ($this->isQuery($mixed)) {
+                $query = $mixed;
+            } else {
+                $query = $this->ExistsWithArray($mixed);
+            }
+
+            $params = $query->getParameters();
+            $queryString = $query->getSql();
+            
+            foreach ($params as $param => $value) {
+                $value = gettype($value) != 'boolean' ? $value : $value ? 'true' : 'false';
+                $queryString = str_replace($param, $value, $queryString);
+            }
+
+            $start = microtime(true);
+            $query = $query->execute();
+            $end = microtime(true);
+            $time = round(($end - $start), 4) . ' seconds';
+
+            $this->phpstORM->log('success', "existsWith - \"$queryString\" - $time");
+
+            $exists = $query->fetch();
+            return !!$exists;
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "existsWith - " . $e);
         }
-        $exists = $query->execute()->fetch();
-        return !!$exists;
     }
 
     private function ExistsWithArray(Array $datas): \Doctrine\DBAL\Query\QueryBuilder
@@ -209,23 +288,41 @@ abstract class baseEntity {
 
     public function selectAllWith($mixed): Array
     {
-        if ($this->isQuery($mixed)) {
-            $query = $mixed;
-            $query->from($this->getClassName());
-        } else {
-            $query = $this->getQueryBuilder();
-            $query
-                ->select('*')
-                ->from($this->getClassName());
-
-            foreach ($mixed as $key => $value) {
-                $query->andWhere("$key = :$key");
-                $query->setParameter(":$key", $value);
+        try {
+            if ($this->isQuery($mixed)) {
+                $query = $mixed;
+                $query->from($this->getClassName());
+            } else {
+                $query = $this->getQueryBuilder();
+                $query
+                    ->select('*')
+                    ->from($this->getClassName());
+    
+                foreach ($mixed as $key => $value) {
+                    $query->andWhere("$key = :$key");
+                    $query->setParameter(":$key", $value);
+                }
             }
+    
+            $queryString = $query->getSql();
+            $params = $query->getParameters();
+            $start = microtime(true);
+            $query = $query->execute();
+            $end = microtime(true);
+    
+            $time = round(($end - $start), 4) . ' seconds';
+            foreach ($params as $param => $value) {
+                $value = gettype($value) != 'boolean' ? $value : $value ? 'true' : 'false';
+                $queryString = str_replace($param, $value, $queryString);
+            }
+    
+            $this->phpstORM->log('success', "selectAllWith - \"$queryString\" - $time");
+    
+            $rows = $query->fetchAll();
+            return $this->arrayToObject($rows);
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "selectAllWith - " . $e);
         }
-
-        $rows = $query->execute()->fetchAll();
-        return $this->arrayToObject($rows);
     }
 
     private function convertValue($property, $value, $types)
@@ -237,6 +334,9 @@ abstract class baseEntity {
             case 'int':
                 return intval($value);
 
+            case 'datetime':
+                return new \DateTime($value);
+            
             default:
                 return $value;
         }
@@ -260,16 +360,49 @@ abstract class baseEntity {
         }
 
         if (is_null($this->id)) {
-            $query = $this->getQueryBuilder()
-                ->insert($this->getClassName())
-                ->values($properties);
-            foreach ($properties as $property => $value) {
-                $query->setParameter(":$property", $values[$property]);
+            try {
+                $query = $this->getQueryBuilder()
+                    ->insert($this->getClassName())
+                    ->values($properties);
+                foreach ($properties as $property => $value) {
+                    $query->setParameter(":$property", $values[$property]);
+                }
+                $queryString = $query->getSql();
+                $params = $query->getParameters();
+                foreach ($params as $param => $value) {
+                    $queryString = str_replace($param, $value, $queryString);
+                }
+                $start = microtime(true);
+                $query->execute();
+                $end = microtime(true);
+                $time = round(($end - $start), 4) . ' seconds';
+
+                $this->phpstORM->log('success', "save (insert) - \"$queryString\" - $time");
+
+                $this->id = intval($this->conn->lastInsertId());
+            } catch (\ErrorException $e) {
+                $this->phpstORM->log('error', "save (insert) - " . $e);
             }
-            $query->execute();
-            $this->id = intval($this->conn->lastInsertId());
         } else {
-            $this->conn->update($this->getClassName(), $values, ['id' => $this->id]);
+            try {
+                $query = $this->getQueryBuilder();
+                $query
+                    ->update($this->getClassName())
+                    ->where("id = $this->id");
+                foreach ($values as $key => $value) {
+                    $query->set($key, "'$value'");
+                }
+
+                $queryString = $query->getSql();
+                $start = microtime(true);
+                $query->execute();
+                $end = microtime(true);
+                $time = round(($end - $start), 4) . ' seconds';
+
+                $this->phpstORM->log('success', "save (update) - \"$queryString\" - $time");
+            } catch (\ErrorException $e) {
+                $this->phpstORM->log('error', "save (update) - " . $e);
+            }
         }
     }
 
@@ -278,11 +411,41 @@ abstract class baseEntity {
         if (is_null($this->id)) {
             throw new \Exception("Can't delete a non-existent item");
         }
-        $this->conn->delete($this->getClassName(), ['id' => $this->id]);
+        try {
+            $query = $this->getQueryBuilder()
+                ->delete($this->getClassName())
+                ->where("id = $this->id");
+            
+            $queryString = $query->getSql();
+            $start = microtime(true);
+            $query->execute();
+            $end = microtime(true);
+            $time = round(($end - $start), 4) . ' seconds';
+            $this->phpstORM->log('success', "delete - \"$queryString\" - $time");
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "delete - " . $e);
+        }
     }
 
     public function deleteWith(Array $values): void
     {
-        $this->conn->delete($this->getClassName(), $values);
+        try {
+            $query = $this->getQueryBuilder()
+                ->delete($this->getClassName());
+
+            foreach ($values as $key => $value) {
+                $value = gettype($value) != 'boolean' ? $value : $value ? 'true' : 'false';
+                $query->andWhere("$key = $value");
+            }
+            
+            $queryString = $query->getSql();
+            $start = microtime(true);
+            $query->execute();
+            $end = microtime(true);
+            $time = round(($end - $start), 4) . ' seconds';
+            $this->phpstORM->log('success', "deleteWith - \"$queryString\" - $time");
+        } catch (\ErrorException $e) {
+            $this->phpstORM->log('error', "deleteWith - " . $e);
+        }
     }
 }

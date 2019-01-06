@@ -2,6 +2,12 @@
 
 require_once('./conn.php');
 
+use App\Entities\Kebab;
+
+$kebab = $phpstORM->new(Kebab::class);
+
+$kebab->deleteWith(['oignon' => false]);
+
 $files = array_values(array_diff(scandir(__DIR__ . '/../docs'), array('..', '.', 'Init.md')));
 array_unshift($files, 'Init.md');
 
@@ -41,7 +47,7 @@ $Parsedown = new Parsedown();
     </ul>
 
     <div class="main">
-        <?php echo isset($_GET['page']) ? $Parsedown->text(file_get_contents(__DIR__ . '/../docs/' . $_GET['page'] . '.md')) : '   '; ?>
+        <?php echo isset($_GET['page']) ? $Parsedown->text(file_get_contents(__DIR__ . '/../docs/' . $_GET['page'] . '.md')) : ''; ?>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/components/prism-markup-templating.min.js"></script>
